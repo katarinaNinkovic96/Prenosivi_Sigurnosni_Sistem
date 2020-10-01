@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser(description='set the IP address.')
 parser.add_argument('--IP', type=str, help='set the IP address of the rPi (server device)', default=socket.gethostname() )
 parser.add_argument('--display', type=str2bool, help='set the display flag', nargs='?', const=True, default=False)
 parser.add_argument('--fps', type=float, help='set the fps of rec video', default=10.0)
-parser.add_argument('--streaming', type=int, help='set the streaming limit if hcs04 detected someone', default=10)
+parser.add_argument('--streaming', type=int, help='set the streaming limit if hcsr04 detected someone', default=10)
 
 args = parser.parse_args()
 
@@ -104,8 +104,10 @@ if True == RPI_used:
     
 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
+
 #face detection classifier
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
 #WebCam handler
 if platform == "linux" or platform == "linux2":
     cap = cv2.VideoCapture(0)
@@ -125,7 +127,7 @@ clients_lock = threading.Lock()
 serversock = socket.socket()
 serversock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serversock.bind((host,port))
-serversock.listen(3)
+serversock.listen()
 
 print("IP: ")
 print(serversock.getsockname() )
@@ -142,6 +144,8 @@ ClientConnection = True
 def listener(client, address):
     global data
     global detected
+    # Atribut global govori da je u pitanju globalna promenljiva, te da ne instancira
+    # novu lokalnu promenljivu nego njene vrednosti očitava ‘spolja’
     global sndMsg
     sndMsg = False
     print ("\nAccepted connection from: ", address,'\n')
@@ -241,11 +245,11 @@ while True:
 
         if detected == True:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+            faces = face_cascade.detectMultiScale(gray, 
+                scaleFactor=1.3, 
+                minNeighbors=5)
             for(x, y, w, h) in faces:
                 cv2.rectangle(frame, (x,y), (x+w, y+h), (0, 0, 255), 2)
-                roi_gray = gray[y:y+h, x:x+w]
-                roi_color = frame[y:y+h, x:x+w]
             
             # #enable only sending frames with face detection
             # if(len(faces) == 0):
