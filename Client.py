@@ -5,23 +5,24 @@ import struct
 import time
 import pickle
 import zlib
-
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 import argparse
 
 parser = argparse.ArgumentParser(description='set the IP address.')
-parser.add_argument('--IP', type=str, help='set the IP address of the rPi (server device)')
+parser.add_argument('--IP', 
+    type=str, 
+    help='set the IP address of the rPi (server device)')
 args = parser.parse_args()
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 port = 21000
 host = str(args.IP) #'192.168.0.100' #example
 
 client_socket.connect((host, port) )
-connection = client_socket.makefile('wb')
 
 data = b""
 payload_size = struct.calcsize(">L")
+
 while True:
     while len(data) < payload_size:
         data += client_socket.recv(4096)
